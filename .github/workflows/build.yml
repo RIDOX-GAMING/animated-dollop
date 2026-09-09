@@ -1,0 +1,37 @@
+name: Build Road 96 Farsi Auto
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+      - name: Restore
+        run: dotnet restore
+      - name: Build Release
+        run: dotnet build -c Release --no-restore
+      - name: Stage plugin
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release/BepInEx/plugins | Out-Null
+          Copy-Item bin/Release/net6.0/Road96FarsiAuto.dll release/BepInEx/plugins/Road96FarsiAuto.dll -Force
+      - name: Build deployment zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path release/* -DestinationPath Road96FarsiAuto-release.zip -Force
+      - name: Upload DLL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Road96FarsiAuto-DLL
+          path: release/BepInEx/plugins/Road96FarsiAuto.dll
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Road96FarsiAuto-Release-ZIP
+          path: Road96FarsiAuto-release.zip
